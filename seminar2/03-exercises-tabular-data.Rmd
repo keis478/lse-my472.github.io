@@ -151,8 +151,8 @@ the idea that you are using it for your final analysis. Switch to the final
 branch and double check you are on the final branch.
 
 ```{bash, eval = FALSE}
-git _________ final 
-git _________ final
+git branch final 
+git checkout final
 git branch
 ```
 
@@ -175,27 +175,27 @@ computation, some can be simpler than the solution sketch here)
 # Q3 --------------------------------------------------------------------------
 # Data transformations with mutate
 ipu_clean %>%
-  _______(ip_sq = _______,
-         ________________ = _______________,
-         ip_unemployment = ___________________) %>%
+  mutate(ip_sq = ip ^ 2,
+         ln_unemployment = log(unemployment),
+         ip_unemployment = unemployment + ip ) %>%
   head()
 
 # Optional --------------------------------------------------------------------
 # The skeleton code acts a possible hint, but you may prefer to do this more complex task your own way
 library(lubridate)
 (yeartoyear <- ipu_clean %>%
-  _______(yr = year(dmy(____)),
-         mth = month(dmy(____))) %>%
-  _____(-____) %>%
-  pivot______(id_cols = c("______", "___"),
-              _________ = yr, names_prefix = "yr",
-              ___________ = c("ip", "unemployment")) %>%
+  mutate(yr = year(dmy(date)),
+         mth = month(dmy(date))) %>%
+  select(-date) %>%
+  pivot_wider(id_cols = c("country", "mth"),
+              names_from = yr, names_prefix = "yr",
+              values_from = c("ip", "unemployment")) %>%
   mutate(ip_yty = ip_yr2020 - ip_yr2019,
-         unemployment_yty = ___________________ - ____________________) %>%
-  select(country, mth, _____, _____________________) %>%
+         unemployment_yty = unemployment_yr2020 - unemployment_yr2019) %>%
+  select(country, mth, ip_yty, unemployment_yty) %>%
   drop_na())
 
-head(_________)
+head(yeartoyear)
 
 ```
 
@@ -204,10 +204,10 @@ remote copy on GitHub reflects your work so far. When you commit your changes,
 use "finished second half" as your commit message.
 
 ```{bash, eval = FALSE}
-git _________ 03-exercises-tabular-data.Rmd
-git _________ -m "_________"
+git add 03-exercises-tabular-data.Rmd
+git commit -m "finished second half"
 git push --set-upstream origin final
-git _________ 
+git push 
 ```
 
 (Pop quiz: what is the third line above doing?)
@@ -217,7 +217,7 @@ the `main` branch. **First, save and close this file.** Then switch to the
 `main` branch as follows.
 
 ```{bash, eval = FALSE}
-git _________ main 
+git checkout main 
 ```
 
 After you switch to the `main` branch, reopen this file and check that it no 
