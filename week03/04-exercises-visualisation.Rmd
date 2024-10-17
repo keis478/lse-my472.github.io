@@ -8,6 +8,7 @@ output: html_document
 
 ```{r}
 library("tidyverse")
+install.packages("plotly")
 library("plotly")
 library("scales")
 ```
@@ -42,31 +43,60 @@ Your code here:
 ```{r}
 
 # Transforming date column to datetime (lubridate package!)
+unemp$date <- as_date(unemp$date)
 
+yrng <- range(unemp$unemp, na.rm = TRUE)
+xrng <- range(unemp$date, na.rm = TRUE)
 
 
 # Creating a line-plot with unemployment and date
-
-
+pq <- ggplot(unemp) + geom_line(aes(x = date, y = unemp))
 
 # Adding the rectangle geometry (set axes limits so that background covers entire plot)
+pq <- pq + 
+  geom_rect(data=pres, 
+            aes(xmin=start, xmax=end,
+                fill=party), 
+            ymin=yrng[1]-0.05, ymax=yrng[2]+0.05) +
+  scale_fill_manual(values = alpha(c("blue", "red"), 0.2)) +
+  scale_x_date(limits=xrng, expand=c(0,0))
 
-
+pq
 
 # Adding president names
-
+plot <- plot + 
+  geom_text(data = pres,
+           aes(x = start, y = yrng[2], label = naem),
+           size=3, hjust=0.25, vjust=1.25, angle=90)
+           
 
 
 # Adding lines to separate presidencies
-
+pq <- pq + 
+  geom_vline(data = pres, 
+             aes(xintercept=as.numeric(start)),
+             color = "grey50", linetype = 5, size = 0.5)
 
 
 # Finally, moving legend and removing x axis title
+library(grid)
+pq <- pq + theme(
+  axis.title.x = element_blank(),
+  legend.position = "bottom",
+  legend.margin = unit(-1, "cm") ) +
+  scale_fill_manual("Party of President",
+                    values = alpha(c("blue", "red"), 0.2),
+                    labels = c("Democratic", "Republican")
+  )
 
 
+pq
 
 # Adjusting y axis
-
+pq <- pq +
+  scale_x_continuous("Unemployment Rate", labels = percent, 
+                     limits = c(0.02, 0.115), breaks=c(0.02, 0.04, 0.06, 0.08, 0.10, 0.12)) +
+  coord_cartesian(ylim = c(0.02, 0.12))
 
 
 ```
@@ -105,7 +135,7 @@ Creating the plot data:
 
 ```{r}
 df_plot <- as_tibble(df[df$likes_count > 5000,])
-df_plot$message_length <- _________(df_plot$message)
+df_plot$message_length <- str_count(df_plot$message)
 df_plot <- df_plot %>% select(likes_count, shares_count, message_length, party)
 df_plot <- drop_na(df_plot)
 df_plot$party <- as.factor(df_plot$party)
@@ -114,8 +144,11 @@ df_plot$party <- as.factor(df_plot$party)
 Plot:
 
 ```{r}
-plotlyfigure1 <- plot_ly(df_plot, type= "scatter3d", mode = "markers", x = _________,
-               y = _________, z = _________, color = ~party)
+plotlyfigure1 <- plot_ly(df_plot, type= "scatter3d", mode = "markers", 
+                         x = ~likes_count,
+                         y = ~shares_count, 
+                         z = ~party, 
+                         color = ~party)
 plotlyfigure1 <- plotlyfigure1 %>% layout(scene = list(xaxis = list(title = "Log likes count", type = "log"),
                      yaxis = list(title = "Log shares count", type = "log"),
                      zaxis = list(title = "Message length")))
@@ -128,7 +161,7 @@ Plotly can also create many plots similar to the ones that we have discussed wit
 ```{r}
 plotlyfigure2 <- plot_ly(df_plot[df_plot$message_length>500 &
                                 df_plot$party %in% c("Democrat", "Republican"),],
-                      type = _________, y = ~message_length, split = ~party)
+                      type = "violin", y = ~message_length, split = ~party)
 plotlyfigure2 <- plotlyfigure2 %>% layout(yaxis = list(title = "Message length"))
 
 plotlyfigure2
